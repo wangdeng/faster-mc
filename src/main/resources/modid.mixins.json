@@ -4,9 +4,7 @@
   "package": "com.wangdeng.fastermc.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-  ],
-  "client": [
-    "YggdrasilSocialInteractionsServiceInject"
+    "ExperienceOrbAccess","MixinExperienceOrb"
   ],
   "injectors": {
     "defaultRequire": 1

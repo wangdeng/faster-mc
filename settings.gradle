@@ -4,6 +4,11 @@ pluginManagement {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
+        maven {
+            name = "BlameJared"
+            url = 'https://maven.blamejared.com'
+        }
+        maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
         gradlePluginPortal()
     }
