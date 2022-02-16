@@ -4,13 +4,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.wangdeng.fastermc.FasterMc;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
-import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.core.QuartPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.BaseStoneSource;
 import net.minecraft.world.level.levelgen.StructureSettings;
 import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.StrongholdConfiguration;
@@ -18,7 +16,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -43,7 +40,7 @@ public abstract class MixinChunkGenerator {
     private void generateStrongholds(CallbackInfo ci) {
         if (this.strongholdPositions.isEmpty()) {
             FasterMc.LOGGER.info("generateStrongholds replaced");
-            long t1=System.currentTimeMillis();
+            long t1 = System.currentTimeMillis();
             StrongholdConfiguration config = this.settings.stronghold();
             if (config != null && config.count() != 0) {
                 Set<Biome> set = Sets.newHashSet();
@@ -63,18 +60,19 @@ public abstract class MixinChunkGenerator {
                 double sin0 = Math.sin(d0);
                 int j = 0;
                 int k = 0;
-
+                BiomeSource source = this.biomeSource;
+                //128
                 for (int l = 0; l < count; ++l) {
                     double d1 = (double) (4 * distance + distance * k * 6) + (random.nextDouble() - 0.5D) * (double) distance * 2.5D;
                     int i1 = (int) Math.round(cos0 * d1);
                     int j1 = (int) Math.round(sin0 * d1);
 
                     //这里需要优化掉
-                    BlockPos blockpos = this.biomeSource.findBiomeHorizontal(SectionPos.sectionToBlockCoord(i1, 8), 0,
-                            SectionPos.sectionToBlockCoord(j1, 8), 112, set::contains, random);
+                    BlockPos blockpos = this.findBiomeHorizontal(source, (i1 << 4) + 8, 0,
+                            (j1 << 4) + 8, 112, set, random);
                     if (blockpos != null) {
-                        i1 = SectionPos.blockToSectionCoord(blockpos.getX());
-                        j1 = SectionPos.blockToSectionCoord(blockpos.getZ());
+                        i1 = blockpos.getX() >> 4;
+                        j1 = blockpos.getZ() >> 4;
                     }
 
                     this.strongholdPositions.add(new ChunkPos(i1, j1));
@@ -89,9 +87,37 @@ public abstract class MixinChunkGenerator {
                     }
                 }
             }
-            long t2=System.currentTimeMillis();
-            FasterMc.LOGGER.info("128 stronghold's coordinate find use time:"+(t2-t1)/1000.0+"s");
+            long t2 = System.currentTimeMillis();
+            FasterMc.LOGGER.info("128 stronghold's coordinate find use time:" + (t2 - t1) / 1000.0 + "s");
         }
         ci.cancel();
+    }
+
+
+    private BlockPos findBiomeHorizontal(BiomeSource biomeSource, int a, int b, int c, int d, Set<Biome> set, Random random) {
+        int n = a >> 2;
+        int o = c >> 2;
+        int p = d >> 2;
+        int q = b >> 2;
+        BlockPos blockPos = null;
+        int r = 0;
+        //448
+        Biome biome;
+        for (int i = -p; i <= p; i++) {
+            //448
+            for (int j = -p; j <= p; j++) {
+                int bl3 = n + j;
+                int w = o + i;
+                biome = biomeSource.getNoiseBiome(bl3, q, w);
+                if (set.contains(biome)) {
+                    if (blockPos == null || random.nextInt(r + 1) == 0) {
+                        blockPos = new BlockPos(QuartPos.toBlock(bl3), b, QuartPos.toBlock(w));
+                    }
+                    ++r;
+                }
+            }
+        }
+
+        return blockPos;
     }
 }
