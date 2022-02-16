@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 
 @Mixin(ExperienceOrb.class)
 public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
-    
     @Shadow
     private int count;
     
@@ -43,7 +42,6 @@ public abstract class MixinExperienceOrb extends Entity implements IClumpedOrb {
     
     @Shadow
     private static boolean canMerge(ExperienceOrb experienceOrb, int i, int j) {
-        
         return false;
     }
     
