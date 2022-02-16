@@ -17,7 +17,9 @@ import net.minecraft.world.level.levelgen.feature.configurations.StrongholdConfi
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 import java.util.Random;
@@ -37,7 +39,8 @@ public abstract class MixinChunkGenerator {
     /**
      * //TODO优化算法
      */
-    private void generateStrongholds() {
+    @Inject(method = "generateStrongholds", at = @At(value = "HEAD"), cancellable = true)
+    private void generateStrongholds(CallbackInfo ci) {
         if (this.strongholdPositions.isEmpty()) {
             FasterMc.LOGGER.info("generateStrongholds replaced");
             long t1=System.currentTimeMillis();
@@ -89,5 +92,6 @@ public abstract class MixinChunkGenerator {
             long t2=System.currentTimeMillis();
             FasterMc.LOGGER.info("128 stronghold's coordinate find use time:"+(t2-t1)/1000.0+"s");
         }
+        ci.cancel();
     }
 }

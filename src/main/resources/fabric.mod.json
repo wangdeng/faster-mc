@@ -6,7 +6,7 @@
   "name": "Faster MC Mod",
   "description": "improve performance,learn mod programming",
   "authors": [
-    "Me!"
+    "WangDeng"
   ],
   "contact": {
     "homepage": "https://github.com/wangdeng/faster-mc",
@@ -25,7 +25,6 @@
   "mixins": [
     "faster-mc.mixins.json"
   ],
-
   "depends": {
     "fabricloader": ">=0.11.3",
     "fabric": "*",
