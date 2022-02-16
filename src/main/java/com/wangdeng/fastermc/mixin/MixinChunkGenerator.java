@@ -34,7 +34,7 @@ public abstract class MixinChunkGenerator {
     private List<ChunkPos> strongholdPositions = Lists.newArrayList();
 
     /**
-     * //TODO优化算法
+     * 优化末地要塞的坐标计算过程
      */
     @Inject(method = "generateStrongholds", at = @At(value = "HEAD"), cancellable = true)
     private void generateStrongholds(CallbackInfo ci) {
@@ -45,7 +45,6 @@ public abstract class MixinChunkGenerator {
             if (config != null && config.count() != 0) {
                 Set<Biome> set = Sets.newHashSet();
                 for (Biome biome : this.biomeSource.possibleBiomes()) {
-                    //这块不费时间
                     if (biome.getGenerationSettings().isValidStart(StructureFeature.STRONGHOLD)) {
                         set.add(biome);
                     }
@@ -99,8 +98,9 @@ public abstract class MixinChunkGenerator {
         int o = c >> 2;
         int p = d >> 2;
         int q = b >> 2;
-        BlockPos blockPos = null;
         int r = 0;
+        int x = 0, z = 0;
+        boolean flag = true;
         //448
         Biome biome;
         for (int i = -p; i <= p; i++) {
@@ -110,14 +110,18 @@ public abstract class MixinChunkGenerator {
                 int w = o + i;
                 biome = biomeSource.getNoiseBiome(bl3, q, w);
                 if (set.contains(biome)) {
-                    if (blockPos == null || random.nextInt(r + 1) == 0) {
-                        blockPos = new BlockPos(QuartPos.toBlock(bl3), b, QuartPos.toBlock(w));
+                    if (flag) {
+                        flag = false;
+                        x = bl3;
+                        z = w;
+                    } else if (random.nextInt(r + 1) == 0) {
+                        x = bl3;
+                        z = w;
                     }
                     ++r;
                 }
             }
         }
-
-        return blockPos;
+        return flag ? null : new BlockPos(x << 2, b, z << 2);
     }
 }
