@@ -1,50 +1,47 @@
 package com.wangdeng.fastermc.mixin;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.wangdeng.fastermc.FasterMc;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.QuartPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.StructureSettings;
 import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.StrongholdConfiguration;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mixin(ChunkGenerator.class)
 public abstract class MixinChunkGenerator {
-    @Shadow
-    protected BiomeSource biomeSource;
-    @Shadow
-    private StructureSettings settings;
-    @Shadow
-    private long strongholdSeed;
-    @Shadow
-    private List<ChunkPos> strongholdPositions = Lists.newArrayList();
+
+    private static Map<String, List<ChunkPos>> strongholdPositionMap = new ConcurrentHashMap<>();
+
 
     /**
      * 优化末地要塞的坐标计算过程
      */
     @Inject(method = "generateStrongholds", at = @At(value = "HEAD"), cancellable = true)
     private void generateStrongholds(CallbackInfo ci) {
-        if (this.strongholdPositions.isEmpty()) {
-            FasterMc.LOGGER.info("generateStrongholds replaced");
-            long t1 = System.currentTimeMillis();
-            StrongholdConfiguration config = this.settings.stronghold();
+        ChunkGeneratorAccess access=(ChunkGeneratorAccess)(Object)this;
+        List<ChunkPos> posList=access.getStrongholdPositions();
+        if (posList.isEmpty()) {
+            FasterMc.LOGGER.info("wordSeed is " + access.getStrongholdSeed());
+
+            StrongholdConfiguration config = access.getSettings().stronghold();
             if (config != null && config.count() != 0) {
+                long seed=access.getStrongholdSeed();
+                String key = new StringJoiner(":").add(seed + "").add(config.distance() + "").add(config.spread() + "").add(config.count() + "").toString();
+                if (strongholdPositionMap.containsKey(key)) {
+                    posList.addAll(strongholdPositionMap.get(key));
+                }
                 Set<Biome> set = Sets.newHashSet();
-                for (Biome biome : this.biomeSource.possibleBiomes()) {
+                for (Biome biome : access.getBiomeSource().possibleBiomes()) {
                     if (biome.getGenerationSettings().isValidStart(StructureFeature.STRONGHOLD)) {
                         set.add(biome);
                     }
@@ -53,13 +50,13 @@ public abstract class MixinChunkGenerator {
                 int count = config.count();
                 int spread = config.spread();
                 Random random = new Random();
-                random.setSeed(this.strongholdSeed);
+                random.setSeed(seed);
                 double d0 = random.nextDouble() * Math.PI * 2.0D;
                 double cos0 = Math.cos(d0);
                 double sin0 = Math.sin(d0);
                 int j = 0;
                 int k = 0;
-                BiomeSource source = this.biomeSource;
+                BiomeSource source = access.getBiomeSource();
                 //128
                 for (int l = 0; l < count; ++l) {
                     double d1 = (double) (4 * distance + distance * k * 6) + (random.nextDouble() - 0.5D) * (double) distance * 2.5D;
@@ -74,7 +71,7 @@ public abstract class MixinChunkGenerator {
                         j1 = blockpos.getZ() >> 4;
                     }
 
-                    this.strongholdPositions.add(new ChunkPos(i1, j1));
+                    posList.add(new ChunkPos(i1, j1));
                     d0 += (Math.PI * 2D) / (double) spread;
                     ++j;
                     if (j == spread) {
@@ -85,9 +82,8 @@ public abstract class MixinChunkGenerator {
                         d0 += random.nextDouble() * Math.PI * 2.0D;
                     }
                 }
+                strongholdPositionMap.put(key, posList);
             }
-            long t2 = System.currentTimeMillis();
-            FasterMc.LOGGER.info("128 stronghold's coordinate find use time:" + (t2 - t1) / 1000.0 + "s");
         }
         ci.cancel();
     }

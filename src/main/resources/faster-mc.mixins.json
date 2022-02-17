@@ -4,7 +4,7 @@
   "package": "com.wangdeng.fastermc.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MixinChunkGenerator","ExperienceOrbAccess","MixinExperienceOrb"
+    "ChunkGeneratorAccess","MixinChunkGenerator","ExperienceOrbAccess","MixinExperienceOrb"
   ],
   "injectors": {
     "defaultRequire": 1
