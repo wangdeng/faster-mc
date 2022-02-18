@@ -28,14 +28,13 @@ public abstract class MixinChunkGenerator {
      */
     @Inject(method = "generateStrongholds", at = @At(value = "HEAD"), cancellable = true)
     private void generateStrongholds(CallbackInfo ci) {
-        ChunkGeneratorAccess access=(ChunkGeneratorAccess)(Object)this;
-        List<ChunkPos> posList=access.getStrongholdPositions();
+        ChunkGeneratorAccess access = (ChunkGeneratorAccess) (Object) this;
+        List<ChunkPos> posList = access.getStrongholdPositions();
         if (posList.isEmpty()) {
-            FasterMc.LOGGER.info("wordSeed is " + access.getStrongholdSeed());
-
+            long seed = access.getStrongholdSeed();
+            FasterMc.LOGGER.info("wordSeed is " + seed);
             StrongholdConfiguration config = access.getSettings().stronghold();
             if (config != null && config.count() != 0) {
-                long seed=access.getStrongholdSeed();
                 String key = new StringJoiner(":").add(seed + "").add(config.distance() + "").add(config.spread() + "").add(config.count() + "").toString();
                 if (strongholdPositionMap.containsKey(key)) {
                     posList.addAll(strongholdPositionMap.get(key));
@@ -82,7 +81,9 @@ public abstract class MixinChunkGenerator {
                         d0 += random.nextDouble() * Math.PI * 2.0D;
                     }
                 }
-                strongholdPositionMap.put(key, posList);
+                if (seed != 0L) {
+                    strongholdPositionMap.put(key, posList);
+                }
             }
         }
         ci.cancel();
