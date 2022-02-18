@@ -38,6 +38,7 @@ public abstract class MixinChunkGenerator {
                 String key = new StringJoiner(":").add(seed + "").add(config.distance() + "").add(config.spread() + "").add(config.count() + "").toString();
                 if (strongholdPositionMap.containsKey(key)) {
                     posList.addAll(strongholdPositionMap.get(key));
+                    return;
                 }
                 Set<Biome> set = Sets.newHashSet();
                 for (Biome biome : access.getBiomeSource().possibleBiomes()) {
