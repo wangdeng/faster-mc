@@ -1,13 +1,6 @@
 # faster-mc
 单机版本的minecraft1.17.1的优化
 
----20220218---
-总觉得源码里处理水流扩散的代码很烂，准备周末优化优化。
-
-FlowingFluid这个类，尤其是这个底层方法getSpread，需要重写。
-
-获取一个水方块的扩散方向map，idea里跑debug1次 0.27毫秒,1秒几百次调用,实在是卡顿的受不了。
-
 ---20220217---
 YggdrasilSocialInteractionsService 这么替换掉:
 public class YggdrasilSocialInteractionsService implements SocialInteractionsService {
