@@ -52,16 +52,14 @@ public abstract class MixinChunkGenerator {
                 Random random = new Random();
                 random.setSeed(seed);
                 double d0 = random.nextDouble() * Math.PI * 2.0D;
-                double cos0 = Math.cos(d0);
-                double sin0 = Math.sin(d0);
                 int j = 0;
                 int k = 0;
                 BiomeSource source = access.getBiomeSource();
                 //128
                 for (int l = 0; l < count; ++l) {
                     double d1 = (double) (4 * distance + distance * k * 6) + (random.nextDouble() - 0.5D) * (double) distance * 2.5D;
-                    int i1 = (int) Math.round(cos0 * d1);
-                    int j1 = (int) Math.round(sin0 * d1);
+                    int i1 = (int) Math.round( Math.cos(d0) * d1);
+                    int j1 = (int) Math.round(Math.sin(d0) * d1);
 
                     //这里需要优化掉
                     BlockPos blockpos = this.findBiomeHorizontal(source, (i1 << 4) + 8, 0,
